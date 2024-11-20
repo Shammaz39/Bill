@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js'; // Firebase config
-import { collection, onSnapshot, setDoc, deleteDoc, doc, addDoc } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
+import { collection, onSnapshot, setDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
 
 const itemForm = document.getElementById("item-form");
 const itemContainer = document.getElementById("item-container");
@@ -20,11 +20,8 @@ itemForm.addEventListener("submit", async (e) => {
     }
 
     try {
-        // Use item name as the document ID
-        const itemRef = doc(db, "items", itemName); 
-        await setDoc(itemRef, { 
-            price: itemPrice // Only price is stored, as the name is in the document ID
-        });
+        const itemRef = doc(db, "items", itemName);
+        await setDoc(itemRef, { price: itemPrice });
 
         alert(`Item "${itemName}" added/updated successfully!`);
     } catch (error) {
@@ -32,7 +29,6 @@ itemForm.addEventListener("submit", async (e) => {
         alert("Error adding item.");
     }
 
-    // Clear form
     itemForm.reset();
 });
 
@@ -40,20 +36,23 @@ itemForm.addEventListener("submit", async (e) => {
 function loadItems() {
     const itemsRef = collection(db, "items");
 
-    // Listen for real-time updates
     onSnapshot(itemsRef, (snapshot) => {
-        itemContainer.innerHTML = ""; // Clear the container before loading items
+        itemContainer.innerHTML = "";
         snapshot.forEach((doc) => {
-            const itemName = doc.id; // Use document ID as the item name
-            const item = doc.data(); // Contains only the price
+            const itemName = doc.id;
+            const item = doc.data();
             const li = document.createElement("li");
-            li.innerHTML = `${itemName} - ₹${item.price} 
-                            <button class="delete-btn" data-id="${itemName}">Delete</button>`;
+
+            li.innerHTML = `
+                ${itemName} - ₹${item.price}
+                <button class="modify-btn" data-id="${itemName}">Modify</button>
+                <button class="delete-btn" data-id="${itemName}">Delete</button>
+            `;
             itemContainer.appendChild(li);
         });
 
-        // Attach event listeners to the delete buttons
         attachDeleteEventListeners();
+        attachModifyEventListeners();
     }, (error) => {
         console.error("Error loading items in real-time: ", error);
     });
@@ -63,9 +62,34 @@ function loadItems() {
 function attachDeleteEventListeners() {
     const deleteButtons = document.querySelectorAll('.delete-btn');
     deleteButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
+        button.addEventListener('click', async (e) => {
             const itemName = e.target.getAttribute('data-id');
-            deleteItem(itemName);
+            await deleteItem(itemName);
+        });
+    });
+}
+
+// Attach event listeners to modify buttons
+function attachModifyEventListeners() {
+    const modifyButtons = document.querySelectorAll('.modify-btn');
+    modifyButtons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const itemName = e.target.getAttribute('data-id');
+            const newPrice = parseFloat(prompt(`Enter new price for "${itemName}":`));
+
+            if (isNaN(newPrice)) {
+                alert("Invalid price. Please enter a number.");
+                return;
+            }
+
+            try {
+                const itemRef = doc(db, "items", itemName);
+                await setDoc(itemRef, { price: newPrice }, { merge: true });
+                alert(`Price for "${itemName}" updated to ₹${newPrice}.`);
+            } catch (error) {
+                console.error("Error updating price: ", error);
+                alert("Error updating price.");
+            }
         });
     });
 }
@@ -77,7 +101,8 @@ async function deleteItem(itemName) {
         await deleteDoc(itemRef);
         alert(`Item "${itemName}" deleted successfully!`);
     } catch (error) {
-        alert("Error deleting item: " + error.message);
+        console.error("Error deleting item: ", error);
+        alert("Error deleting item.");
     }
 }
 
@@ -85,16 +110,15 @@ async function deleteItem(itemName) {
 function loadBillingItems() {
     const itemsRef = collection(db, "items");
 
-    // Listen for real-time updates
     onSnapshot(itemsRef, (snapshot) => {
-        itemSelector.innerHTML = ""; // Clear the dropdown before loading items
+        itemSelector.innerHTML = "";
         snapshot.forEach((doc) => {
-            const itemName = doc.id; // Use document ID as the item name
+            const itemName = doc.id;
             const item = doc.data();
             const option = document.createElement("option");
             option.value = JSON.stringify({ name: itemName, price: item.price });
             option.text = `${itemName} - ₹${item.price}`;
-            itemSelector.add(option); // Add option to dropdown
+            itemSelector.add(option);
         });
     }, (error) => {
         console.error("Error loading billing items in real-time: ", error);
@@ -103,100 +127,82 @@ function loadBillingItems() {
 
 // Add Item to Bill
 function addItemToBill() {
-    const selectedItem = JSON.parse(itemSelector.value); // Parse the selected item as JSON
+    const selectedItem = JSON.parse(itemSelector.value);
     if (!selectedItem) {
         alert("Please select an item to add to the bill.");
         return;
     }
-    total += selectedItem.price; // Add selected item's price to the total
+    total += selectedItem.price;
     billContainer.innerHTML += `<li>${selectedItem.name} - ₹${selectedItem.price}</li>`;
-    document.getElementById("total-price").innerText = `Total: ₹${total}`; // Update the total price
+    document.getElementById("total-price").innerText = `₹${total}`;
 }
 
-// Print (Generate and Save) the Bill
+// Print Bill
 async function printBill() {
     const billData = {
-        items: Array.from(billContainer.children).map((li) => li.innerText), // Extract items as strings
+        items: Array.from(billContainer.children).map((li) => li.innerText),
         total,
-        date: new Date().toISOString(), // Store the raw ISO date for reference
+        date: new Date().toISOString(),
     };
 
     try {
-        // Format date to be used as document ID (e.g., 2024-11-20_15-30-00)
-        const formattedDate = new Date().toISOString().replace(/[^0-9]/g, "_"); // Replace non-numeric characters with underscores
-        const billRef = doc(db, "bills", formattedDate);  // Use formatted date as the document ID
-
-        // Save the bill data to Firestore with the formatted date as document ID
-        await setDoc(billRef, billData); // Save the bill in Firestore
+        const formattedDate = new Date().toISOString().replace(/[^0-9]/g, "_");
+        const billRef = doc(db, "bills", formattedDate);
+        await setDoc(billRef, billData);
 
         alert("Bill saved!");
 
-        // Create the PDF using jsPDF
         const { jsPDF } = window.jspdf;
-        const pdfDoc = new jsPDF(); // Create a PDF document instance
-
-        // Add title and bill details
+        const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(18);
         pdfDoc.text("Bill", 20, 20);
 
-        // Add each item in the bill to the PDF
         pdfDoc.setFontSize(12);
-        let yOffset = 30; // Start y position for the items
+        let yOffset = 30;
         billData.items.forEach((item) => {
             pdfDoc.text(item, 20, yOffset);
-            yOffset += 10; // Increase y position for the next item
+            yOffset += 10;
         });
 
-        // Add the total to the PDF
         pdfDoc.text(`Total: ₹${billData.total}`, 20, yOffset);
-
-        // Add date to PDF (formatted for display purposes)
         pdfDoc.text(`Date: ${new Date().toLocaleString()}`, 20, yOffset + 10);
 
-        // Generate a safe file name for the PDF by formatting the date
-        const safeDate = new Date().toISOString().replace(/[^0-9]/g, "_"); // Ensure no illegal characters
+        const safeDate = new Date().toISOString().replace(/[^0-9]/g, "_");
         pdfDoc.save(`bill_${safeDate}.pdf`);
 
-        // Clear the bill container after printing the bill
-        billContainer.innerHTML = "";  // Remove the bill list from the page
-        total = 0;  // Reset the total
-
-        // Reset the total display
-        document.getElementById("total-price").innerText = `Total: ₹${total}`;
-
+        billContainer.innerHTML = "";
+        total = 0;
+        document.getElementById("total-price").innerText = "₹0";
     } catch (error) {
+        console.error("Error saving bill: ", error);
         alert("Error saving bill.");
-        console.error(error); // Log the error for debugging
     }
 }
 
-// Load items when the page loads
+// Load items on page load
 document.addEventListener("DOMContentLoaded", () => {
-    loadItems(); // Real-time updates for item list
-    loadBillingItems(); // Real-time updates for billing dropdown
+    loadItems();
+    loadBillingItems();
 
-    // Add event listener to the "Add Item" button (this also allows form submission)
     addItemBtn.addEventListener("click", addItemToBill);
 
-    // Add event listener to the "Print Bill" button
     const printBillBtn = document.getElementById("print-bill-btn");
     printBillBtn.addEventListener("click", printBill);
 });
 
-// DOM Elements
+// Navigation
 const viewItemsBtn = document.getElementById("view-items-btn");
 const viewBillingBtn = document.getElementById("view-billing-btn");
 
 const itemManagementSection = document.getElementById("item-management-section");
 const billingSection = document.getElementById("billing-section");
 
-// Event Listeners for Navigation
-viewItemsBtn?.addEventListener("click", () => {
-    itemManagementSection.style.display = "block"; // Show item management section
-    billingSection.style.display = "none"; // Hide billing section
+viewItemsBtn.addEventListener("click", () => {
+    itemManagementSection.style.display = "block";
+    billingSection.style.display = "none";
 });
 
-viewBillingBtn?.addEventListener("click", () => {
-    itemManagementSection.style.display = "none"; // Hide item management section
-    billingSection.style.display = "block"; // Show billing section
+viewBillingBtn.addEventListener("click", () => {
+    itemManagementSection.style.display = "none";
+    billingSection.style.display = "block";
 });

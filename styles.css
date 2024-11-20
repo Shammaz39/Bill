@@ -22,13 +22,44 @@ h1 {
     margin-bottom: 30px;
 }
 
-/* Item Form Section */
-#item-form-section {
+/* Navigation Bar */
+.nav-bar {
     display: flex;
     justify-content: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    gap: 15px;
 }
 
+.nav-bar button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.nav-bar button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Navigation */
+@media (max-width: 768px) {
+    .nav-bar {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nav-bar button {
+        width: 80%;
+    }
+}
+
+/* Item Form Section */
 #item-form {
     display: flex;
     flex-direction: column;
@@ -39,6 +70,7 @@ h1 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 420px;
+    margin: 0 auto;
 }
 
 #item-form input {
@@ -128,7 +160,6 @@ h1 {
     background-color: #2980b9;
 }
 
-
 #bill-container {
     list-style-type: none;
     padding: 0;
@@ -153,7 +184,7 @@ h1 {
 #total-price {
     font-weight: bold;
     font-size: 1.3rem;
-    color: #2ecc71; /* Green for total */
+    color: #2ecc71;
 }
 
 /* Print Button */
@@ -175,14 +206,6 @@ h1 {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-    body {
-        padding: 15px;
-    }
-
-    #item-form-section {
-        margin-bottom: 25px;
-    }
-
     #item-form {
         width: 100%;
     }
@@ -196,22 +219,5 @@ h1 {
     #add-item-btn,
     #print-bill-btn {
         width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 2.2rem;
-    }
-
-    #item-form button,
-    #add-item-btn,
-    #print-bill-btn {
-        font-size: 1rem;
-    }
-
-    #item-form input,
-    #item-selector {
-        font-size: 1rem;
     }
 }
