@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Items and Billing</h1>
+    <!-- Item Form Section -->
+    <div id="item-form-section">
+        <form id="item-form">
+            <input type="text" id="item-name" placeholder="Item Name" required />
+            <input type="number" id="item-price" placeholder="Item Price" required />
+            <button type="submit">Add Item</button>
+        </form>
+    </div>
+
+    <!-- Items List -->
+    <ul id="item-container"></ul>
+
+    <!-- Billing Section -->
+    <h2>Billing</h2>
+    <select id="item-selector"></select>
+    <button id="add-item-btn">Add Item</button>
+    <ul id="bill-container"></ul>
+    <h3>Total: <span id="total-price">0</span></h3>
+    <button id="print-bill-btn">Print Bill</button>
+    <div id="bill-container"></div>
+
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="app.js"></script>
+    <!-- Add this script tag to include jsPDF in your HTML file -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+/* Reset default margins and paddings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* Header */
+h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+/* Item Form Section */
+#item-form-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+#item-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 420px;
+}
+
+#item-form input {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+#item-form button {
+    padding: 12px 25px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+}
+
+#item-form button:hover {
+    background-color: #2980b9;
+}
+
+/* Item List Section */
+#item-container {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#item-container li {
+    background-color: #fff;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#item-container button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+#item-container button:hover {
+    background-color: #c0392b;
+}
+
+/* Billing Section */
+#item-selector {
+    padding: 12px;
+    width: 80%;
+    max-width: 320px;
+    margin-bottom: 24px;
+    border-radius: 5px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+}
+
+#add-item-btn {
+    padding: 12px 25px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+}
+
+#add-item-btn:hover {
+    background-color: #2980b9;
+}
+
+
+#bill-container {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#bill-container li {
+    background-color: #fff;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#total-price {
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: #2ecc71; /* Green for total */
+}
+
+/* Print Button */
+#print-bill-btn {
+    padding: 12px 25px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+#print-bill-btn:hover {
+    background-color: #27ae60;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    #item-form-section {
+        margin-bottom: 25px;
+    }
+
+    #item-form {
+        width: 100%;
+    }
+
+    #item-container li,
+    #bill-container li {
+        width: 100%;
+    }
+
+    #item-selector,
+    #add-item-btn,
+    #print-bill-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2.2rem;
+    }
+
+    #item-form button,
+    #add-item-btn,
+    #print-bill-btn {
+        font-size: 1rem;
+    }
+
+    #item-form input,
+    #item-selector {
+        font-size: 1rem;
+    }
+}
