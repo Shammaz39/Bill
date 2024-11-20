@@ -3,7 +3,8 @@ import { collection, onSnapshot, setDoc, deleteDoc, doc } from "https://www.gsta
 
 const itemForm = document.getElementById("item-form");
 const itemContainer = document.getElementById("item-container");
-const itemSelector = document.getElementById("item-selector");
+const itemInput = document.getElementById("item-input");
+const itemSuggestions = document.getElementById("item-suggestions");
 const billContainer = document.getElementById("bill-container");
 const addItemBtn = document.getElementById("add-item-btn");
 let total = 0;
@@ -38,6 +39,7 @@ function loadItems() {
 
     onSnapshot(itemsRef, (snapshot) => {
         itemContainer.innerHTML = "";
+        itemSuggestions.innerHTML = ""; // Clear datalist
         snapshot.forEach((doc) => {
             const itemName = doc.id;
             const item = doc.data();
@@ -49,6 +51,12 @@ function loadItems() {
                 <button class="delete-btn" data-id="${itemName}">Delete</button>
             `;
             itemContainer.appendChild(li);
+
+            // Add item to datalist
+            const option = document.createElement("option");
+            option.value = `${itemName} - ₹${item.price}`;
+            option.setAttribute("data-price", item.price);
+            itemSuggestions.appendChild(option);
         });
 
         attachDeleteEventListeners();
@@ -106,41 +114,34 @@ async function deleteItem(itemName) {
     }
 }
 
-// Real-time Loading for Billing Dropdown
-function loadBillingItems() {
-    const itemsRef = collection(db, "items");
-
-    onSnapshot(itemsRef, (snapshot) => {
-        itemSelector.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const itemName = doc.id;
-            const item = doc.data();
-            const option = document.createElement("option");
-            option.value = JSON.stringify({ name: itemName, price: item.price });
-            option.text = `${itemName} - ₹${item.price}`;
-            itemSelector.add(option);
-        });
-    }, (error) => {
-        console.error("Error loading billing items in real-time: ", error);
-    });
-}
-
 // Add Item to Bill
 function addItemToBill() {
-    const selectedItem = JSON.parse(itemSelector.value);
-    if (!selectedItem) {
-        alert("Please select an item to add to the bill.");
+    const selectedOption = Array.from(itemSuggestions.children).find(
+        option => option.value === itemInput.value
+    );
+
+    if (!selectedOption) {
+        alert("Please select a valid item from the suggestions.");
         return;
     }
-    total += selectedItem.price;
-    billContainer.innerHTML += `<li>${selectedItem.name} - ₹${selectedItem.price}</li>`;
+
+    const itemName = selectedOption.value.split(" - ₹")[0];
+    const itemPrice = parseFloat(selectedOption.getAttribute("data-price"));
+
+    total += itemPrice;
+    billContainer.innerHTML += `<li>${itemName} - ₹${itemPrice}</li>`;
     document.getElementById("total-price").innerText = `₹${total}`;
+
+    itemInput.value = ""; // Clear input field
 }
 
 // Print Bill
 async function printBill() {
     const billData = {
-        items: Array.from(billContainer.children).map((li) => li.innerText),
+        items: Array.from(billContainer.children).map((li) => {
+            const [name, price] = li.innerText.split(" - ₹");
+            return { name: name.trim(), price: parseFloat(price.trim()) };
+        }),
         total,
         date: new Date().toISOString(),
     };
@@ -152,24 +153,58 @@ async function printBill() {
 
         alert("Bill saved!");
 
+        // Generate PDF
         const { jsPDF } = window.jspdf;
         const pdfDoc = new jsPDF();
-        pdfDoc.setFontSize(18);
-        pdfDoc.text("Bill", 20, 20);
 
+        // Header
+        pdfDoc.setFont("helvetica", "bold");
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Janatha Garage", 105, 20, { align: "center" });
+
+        // Sub-header with date
+        pdfDoc.setFont("helvetica", "normal");
         pdfDoc.setFontSize(12);
-        let yOffset = 30;
-        billData.items.forEach((item) => {
-            pdfDoc.text(item, 20, yOffset);
+        pdfDoc.setTextColor(100);
+        const formattedDisplayDate = new Date().toLocaleString();
+        pdfDoc.text(`Date: ${formattedDisplayDate}`, 20, 30);
+
+        // Horizontal line
+        pdfDoc.line(20, 35, 190, 35);
+
+        // Bill Details Header
+        pdfDoc.setFont("helvetica", "bold");
+        pdfDoc.setFontSize(14);
+        pdfDoc.text("Bill Details:", 20, 45);
+
+        // Item Details
+        pdfDoc.setFont("helvetica", "normal");
+        pdfDoc.setTextColor(50);
+        let yOffset = 55;
+        billData.items.forEach((item, index) => {
+            const itemText = `${index + 1}. ${item.name} - ₹${item.price.toFixed(2)}`;
+            pdfDoc.text(itemText, 20, yOffset);
             yOffset += 10;
         });
 
-        pdfDoc.text(`Total: ₹${billData.total}`, 20, yOffset);
-        pdfDoc.text(`Date: ${new Date().toLocaleString()}`, 20, yOffset + 10);
+        // Total Amount Section
+        pdfDoc.setFont("helvetica", "bold");
+        pdfDoc.setFontSize(14);
+        pdfDoc.setTextColor(50, 150, 50); // Green for total
+        pdfDoc.text(`Total: ₹${billData.total.toFixed(2)}`, 20, yOffset + 10);
 
+        // Footer
+        pdfDoc.setFont("helvetica", "italic");
+        pdfDoc.setFontSize(10);
+        pdfDoc.setTextColor(150);
+        pdfDoc.text("Thank you for visiting Janatha Garage!", 105, yOffset + 30, { align: "center" });
+        // pdfDoc.text("Generated using our billing system.", 105, yOffset + 40, { align: "center" });
+
+        // Save PDF with timestamped filename
         const safeDate = new Date().toISOString().replace(/[^0-9]/g, "_");
         pdfDoc.save(`bill_${safeDate}.pdf`);
 
+        // Reset Bill UI
         billContainer.innerHTML = "";
         total = 0;
         document.getElementById("total-price").innerText = "₹0";
@@ -179,10 +214,10 @@ async function printBill() {
     }
 }
 
+
 // Load items on page load
 document.addEventListener("DOMContentLoaded", () => {
     loadItems();
-    loadBillingItems();
 
     addItemBtn.addEventListener("click", addItemToBill);
 

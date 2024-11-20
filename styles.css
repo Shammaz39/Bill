@@ -17,9 +17,22 @@ body {
 /* Header */
 h1 {
     text-align: center;
-    font-size: 2.5rem;
-    color: #2c3e50;
-    margin-bottom: 30px;
+    font-size: 2.5rem; /* Prominent font size */
+    color: #2c3e50; /* Dark shade for visibility */
+    margin-bottom: 30px; /* Space below the header */
+    text-transform: uppercase; /* Optional: uppercase styling */
+    letter-spacing: 2px; /* Adds spacing between letters for elegance */
+    font-weight: 700; /* Bold for emphasis */
+}
+
+h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: #34495e;
+    margin-bottom: 20px;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 
 /* Navigation Bar */
@@ -135,7 +148,7 @@ h1 {
 }
 
 /* Billing Section */
-#item-selector {
+#item-input {
     padding: 12px;
     width: 80%;
     max-width: 320px;
@@ -215,7 +228,7 @@ h1 {
         width: 100%;
     }
 
-    #item-selector,
+    #item-input,
     #add-item-btn,
     #print-bill-btn {
         width: 100%;
