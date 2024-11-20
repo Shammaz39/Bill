@@ -110,7 +110,7 @@ function addItemToBill() {
     }
     total += selectedItem.price; // Add selected item's price to the total
     billContainer.innerHTML += `<li>${selectedItem.name} - ₹${selectedItem.price}</li>`;
-    document.getElementById("total-price").innerText = total; // Update the total price
+    document.getElementById("total-price").innerText = `Total: ₹${total}`; // Update the total price
 }
 
 // Print (Generate and Save) the Bill
@@ -118,45 +118,55 @@ async function printBill() {
     const billData = {
         items: Array.from(billContainer.children).map((li) => li.innerText), // Extract items as strings
         total,
-        date: new Date().toISOString(),
+        date: new Date().toISOString(), // Store the raw ISO date for reference
     };
 
     try {
-        // Save the bill data to Firestore
-        await addDoc(collection(db, "bills"), billData); // Save the bill in Firestore with auto-generated ID
+        // Format date to be used as document ID (e.g., 2024-11-20_15-30-00)
+        const formattedDate = new Date().toISOString().replace(/[^0-9]/g, "_"); // Replace non-numeric characters with underscores
+        const billRef = doc(db, "bills", formattedDate);  // Use formatted date as the document ID
+
+        // Save the bill data to Firestore with the formatted date as document ID
+        await setDoc(billRef, billData); // Save the bill in Firestore
+
         alert("Bill saved!");
 
         // Create the PDF using jsPDF
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const pdfDoc = new jsPDF(); // Create a PDF document instance
 
         // Add title and bill details
-        doc.setFontSize(18);
-        doc.text("Bill", 20, 20);
+        pdfDoc.setFontSize(18);
+        pdfDoc.text("Bill", 20, 20);
 
         // Add each item in the bill to the PDF
-        doc.setFontSize(12);
+        pdfDoc.setFontSize(12);
         let yOffset = 30; // Start y position for the items
         billData.items.forEach((item) => {
-            doc.text(item, 20, yOffset);
+            pdfDoc.text(item, 20, yOffset);
             yOffset += 10; // Increase y position for the next item
         });
 
         // Add the total to the PDF
-        doc.text(`Total: ₹${billData.total}`, 20, yOffset);
+        pdfDoc.text(`Total: ₹${billData.total}`, 20, yOffset);
 
-        // Save the PDF
-        doc.save(`bill_${billData.date}.pdf`);
+        // Add date to PDF (formatted for display purposes)
+        pdfDoc.text(`Date: ${new Date().toLocaleString()}`, 20, yOffset + 10);
+
+        // Generate a safe file name for the PDF by formatting the date
+        const safeDate = new Date().toISOString().replace(/[^0-9]/g, "_"); // Ensure no illegal characters
+        pdfDoc.save(`bill_${safeDate}.pdf`);
 
         // Clear the bill container after printing the bill
         billContainer.innerHTML = "";  // Remove the bill list from the page
         total = 0;  // Reset the total
 
         // Reset the total display
-        document.getElementById("total-price").innerText = total;
+        document.getElementById("total-price").innerText = `Total: ₹${total}`;
 
     } catch (error) {
         alert("Error saving bill.");
+        console.error(error); // Log the error for debugging
     }
 }
 
@@ -165,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadItems(); // Real-time updates for item list
     loadBillingItems(); // Real-time updates for billing dropdown
 
-    // Add event listener to the "Add Item" button
+    // Add event listener to the "Add Item" button (this also allows form submission)
     addItemBtn.addEventListener("click", addItemToBill);
 
     // Add event listener to the "Print Bill" button
