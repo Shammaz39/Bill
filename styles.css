@@ -234,3 +234,99 @@ h2 {
         width: 100%;
     }
 }
+/* Customer Name (Optional) */
+#customer-name {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+#customer-name::placeholder {
+    color: #888;
+    font-style: italic;
+}
+
+/* Item List Section (updated for customer item entries) */
+#item-container {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#item-container li {
+    background-color: #fff;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+    color: #34495e;
+}
+
+#item-container li span {
+    font-weight: 600; /* Emphasize item name */
+}
+
+#item-container button.remove-item-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+#item-container button.remove-item-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Adjustments for item container on mobile screens */
+@media (max-width: 768px) {
+    #item-container li {
+        width: 90%;
+    }
+
+    #customer-name {
+        width: 90%;
+    }
+}
+
+/* Remove Item Button (for items in the billing list) */
+.remove-item-btn {
+    background-color: #e74c3c;  /* Red background */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.remove-item-btn:hover {
+    background-color: #c0392b;  /* Darker red on hover */
+    transform: scale(1.05);  /* Slightly enlarge the button on hover */
+}
+
+.remove-item-btn:focus {
+    outline: none;  /* Remove outline when the button is focused */
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.5);  /* Add a glow effect on focus */
+}
+
+.remove-item-btn:active {
+    background-color: #e74c3c;  /* Keep the red background color when pressed */
+    transform: scale(1);  /* Ensure the button doesn't stay enlarged after being pressed */
+}

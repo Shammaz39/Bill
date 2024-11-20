@@ -7,6 +7,7 @@ const itemInput = document.getElementById("item-input");
 const itemSuggestions = document.getElementById("item-suggestions");
 const billContainer = document.getElementById("bill-container");
 const addItemBtn = document.getElementById("add-item-btn");
+const totalPriceElement = document.getElementById("total-price");
 let total = 0;
 
 // Add Item to Firestore
@@ -129,14 +130,39 @@ function addItemToBill() {
     const itemPrice = parseFloat(selectedOption.getAttribute("data-price"));
 
     total += itemPrice;
-    billContainer.innerHTML += `<li>${itemName} - ₹${itemPrice}</li>`;
-    document.getElementById("total-price").innerText = `₹${total}`;
+    billContainer.innerHTML += `
+        <li>${itemName} - ₹${itemPrice} 
+            <button class="remove-item-btn">Remove</button>
+        </li>
+    `;
+    totalPriceElement.innerText = `₹${total}`;
 
     itemInput.value = ""; // Clear input field
+
+    // Attach event listener for removing item from bill
+    attachRemoveEventListeners();
+}
+
+// Attach event listeners to remove buttons
+function attachRemoveEventListeners() {
+    const removeButtons = document.querySelectorAll('.remove-item-btn');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const itemLi = e.target.closest('li');
+            const itemText = itemLi.innerText.split(' - ₹');
+            const itemPrice = parseFloat(itemText[1]);
+
+            total -= itemPrice;
+            billContainer.removeChild(itemLi);
+
+            totalPriceElement.innerText = `₹${total}`;
+        });
+    });
 }
 
 // Print Bill
 async function printBill() {
+    const customerName = document.getElementById("customer-name").value || "Guest";
     const billData = {
         items: Array.from(billContainer.children).map((li) => {
             const [name, price] = li.innerText.split(" - ₹");
@@ -144,6 +170,7 @@ async function printBill() {
         }),
         total,
         date: new Date().toISOString(),
+        customerName, // Add customer name
     };
 
     try {
@@ -162,82 +189,53 @@ async function printBill() {
         pdfDoc.setFontSize(20);
         pdfDoc.text("Janatha Garage", 105, 20, { align: "center" });
 
-        // Sub-header with date
+        // Customer and Date Info
         pdfDoc.setFont("helvetica", "normal");
         pdfDoc.setFontSize(12);
         pdfDoc.setTextColor(100);
         const formattedDisplayDate = new Date().toLocaleString();
         pdfDoc.text(`Date: ${formattedDisplayDate}`, 20, 30);
+        pdfDoc.text(`Customer: ${customerName}`, 20, 40);
 
         // Horizontal line
-        pdfDoc.line(20, 35, 190, 35);
+        pdfDoc.line(20, 45, 190, 45);
 
         // Bill Details Header
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.setFontSize(14);
-        pdfDoc.text("Bill Details:", 20, 45);
+        pdfDoc.text("Items:", 20, 55);
 
-        // Item Details
-        pdfDoc.setFont("helvetica", "normal");
-        pdfDoc.setTextColor(50);
-        let yOffset = 55;
-        billData.items.forEach((item, index) => {
-            const itemText = `${index + 1}. ${item.name} - ₹${item.price.toFixed(2)}`;
-            pdfDoc.text(itemText, 20, yOffset);
-            yOffset += 10;
+        // Items List
+        let yPos = 65;
+        billData.items.forEach(item => {
+            pdfDoc.setFont("helvetica", "normal");
+            pdfDoc.text(`${item.name}: ₹${item.price}`, 20, yPos);
+            yPos += 10;
         });
 
-        // Total Amount Section
+        // Total Price
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.setFontSize(14);
-        pdfDoc.setTextColor(50, 150, 50); // Green for total
-        pdfDoc.text(`Total: ₹${billData.total.toFixed(2)}`, 20, yOffset + 10);
+        pdfDoc.text(`Total: ₹${billData.total}`, 20, yPos + 10);
 
-        // Footer
-        pdfDoc.setFont("helvetica", "italic");
-        pdfDoc.setFontSize(10);
-        pdfDoc.setTextColor(150);
-        pdfDoc.text("Thank you for visiting Janatha Garage!", 105, yOffset + 30, { align: "center" });
-        // pdfDoc.text("Generated using our billing system.", 105, yOffset + 40, { align: "center" });
-
-        // Save PDF with timestamped filename
-        const safeDate = new Date().toISOString().replace(/[^0-9]/g, "_");
-        pdfDoc.save(`bill_${safeDate}.pdf`);
-
-        // Reset Bill UI
-        billContainer.innerHTML = "";
-        total = 0;
-        document.getElementById("total-price").innerText = "₹0";
+        // Save as PDF
+        pdfDoc.save(`Bill_${formattedDate}.pdf`);
     } catch (error) {
-        console.error("Error saving bill: ", error);
-        alert("Error saving bill.");
+        console.error("Error generating bill: ", error);
+        alert("Error generating bill.");
     }
 }
 
-
-// Load items on page load
-document.addEventListener("DOMContentLoaded", () => {
-    loadItems();
-
-    addItemBtn.addEventListener("click", addItemToBill);
-
-    const printBillBtn = document.getElementById("print-bill-btn");
-    printBillBtn.addEventListener("click", printBill);
+// Switch between item management and billing
+document.getElementById("view-items-btn").addEventListener("click", () => {
+    document.getElementById("item-management-section").style.display = "block";
+    document.getElementById("billing-section").style.display = "none";
 });
 
-// Navigation
-const viewItemsBtn = document.getElementById("view-items-btn");
-const viewBillingBtn = document.getElementById("view-billing-btn");
-
-const itemManagementSection = document.getElementById("item-management-section");
-const billingSection = document.getElementById("billing-section");
-
-viewItemsBtn.addEventListener("click", () => {
-    itemManagementSection.style.display = "block";
-    billingSection.style.display = "none";
+document.getElementById("view-billing-btn").addEventListener("click", () => {
+    document.getElementById("item-management-section").style.display = "none";
+    document.getElementById("billing-section").style.display = "block";
 });
 
-viewBillingBtn.addEventListener("click", () => {
-    itemManagementSection.style.display = "none";
-    billingSection.style.display = "block";
-});
+// Initialize
+loadItems();
+addItemBtn.addEventListener("click", addItemToBill);
+document.getElementById("print-bill-btn").addEventListener("click", printBill);

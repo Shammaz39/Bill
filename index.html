@@ -29,11 +29,17 @@
     <!-- Billing Section -->
     <div id="billing-section" style="display: none;">
         <h2>Billing</h2>
+
+        <!-- Customer Name (Optional) -->
+        <input type="text" id="customer-name" placeholder="Customer Name (Optional)" />
+
         <input list="item-suggestions" id="item-input" placeholder="Start typing an item name...">
         <datalist id="item-suggestions"></datalist>
         <button id="add-item-btn">Add Item</button>
+
         <ul id="bill-container"></ul>
-        <h3>Total: <span id="total-price">₹0</span></h3>
+
+        <h3>Total: ₹<span id="total-price">0</span></h3>
         <button id="print-bill-btn">Print Bill</button>
     </div>
 
