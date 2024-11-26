@@ -162,19 +162,27 @@ function attachRemoveEventListeners() {
 
 // Print Bill
 async function printBill() {
-    const customerName = document.getElementById("customer-name").value || "Guest";
+    const customerName = document.getElementById("customer-name").value.trim() || "Guest";
+    const companyName = document.getElementById("company-name").value.trim() || "Your Company"; // Default fallback
+
+    if (!companyName) {
+        companyName = "CompanyName"
+    }
+
     const billData = {
+        companyName,
+        customerName,
         items: Array.from(billContainer.children).map((li) => {
             const [name, price] = li.innerText.split(" - ₹");
             return { name: name.trim(), price: parseFloat(price.trim()) };
         }),
         total,
         date: new Date().toISOString(),
-        customerName, // Add customer name
     };
 
     try {
-        const formattedDate = new Date().toISOString().replace(/[^0-9]/g, "_");
+        // Generate a unique document ID (bill ID)
+        const formattedDate = new Date().toISOString().replace(/[^0-9]/g, "");
         const billRef = doc(db, "bills", formattedDate);
         await setDoc(billRef, billData);
 
@@ -187,42 +195,50 @@ async function printBill() {
         // Header
         pdfDoc.setFont("helvetica", "bold");
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Janatha Garage", 105, 20, { align: "center" });
+        pdfDoc.text(companyName, 105, 20, { align: "center" });
 
-        // Customer and Date Info
-        pdfDoc.setFont("helvetica", "normal");
+        // Bill Info Section
         pdfDoc.setFontSize(12);
         pdfDoc.setTextColor(100);
         const formattedDisplayDate = new Date().toLocaleString();
-        pdfDoc.text(`Date: ${formattedDisplayDate}`, 20, 30);
-        pdfDoc.text(`Customer: ${customerName}`, 20, 40);
+        pdfDoc.text(`Bill ID: ${formattedDate}`, 20, 30);
+        pdfDoc.text(`Date: ${formattedDisplayDate}`, 20, 40);
+        pdfDoc.text(`Customer: ${customerName}`, 20, 50);
 
         // Horizontal line
-        pdfDoc.line(20, 45, 190, 45);
+        pdfDoc.line(20, 55, 190, 55);
 
-        // Bill Details Header
+        // Table Headers
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.text("Items:", 20, 55);
+        pdfDoc.text("Item Name", 20, 65);
+        pdfDoc.text("Price", 160, 65, { align: "right" });
 
-        // Items List
-        let yPos = 65;
-        billData.items.forEach(item => {
+        // Horizontal line
+        pdfDoc.line(20, 70, 190, 70);
+
+        // Table Content
+        let yPos = 75;
+        billData.items.forEach((item) => {
             pdfDoc.setFont("helvetica", "normal");
-            pdfDoc.text(`${item.name}: ₹${item.price}`, 20, yPos);
+            pdfDoc.text(item.name, 20, yPos);
+            pdfDoc.text(`Rs.${item.price}`, 160, yPos, { align: "right" });
             yPos += 10;
         });
 
-        // Total Price
+        // Total Section
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.text(`Total: ₹${billData.total}`, 20, yPos + 10);
+        pdfDoc.text("Total:", 140, yPos + 5, { align: "right" });
+        pdfDoc.text(`Rs.${billData.total}`, 160, yPos + 5, { align: "right" });
 
         // Save as PDF
-        pdfDoc.save(`Bill_${formattedDate}.pdf`);
+        pdfDoc.save(`${formattedDate}.pdf`);
     } catch (error) {
         console.error("Error generating bill: ", error);
         alert("Error generating bill.");
     }
 }
+
+
 
 // Switch between item management and billing
 document.getElementById("view-items-btn").addEventListener("click", () => {

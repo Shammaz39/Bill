@@ -17,12 +17,12 @@ body {
 /* Header */
 h1 {
     text-align: center;
-    font-size: 2.5rem; /* Prominent font size */
-    color: #2c3e50; /* Dark shade for visibility */
-    margin-bottom: 30px; /* Space below the header */
-    text-transform: uppercase; /* Optional: uppercase styling */
-    letter-spacing: 2px; /* Adds spacing between letters for elegance */
-    font-weight: 700; /* Bold for emphasis */
+    font-size: 2.5rem; 
+    color: #2c3e50; 
+    margin-bottom: 30px;
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+    font-weight: 700; 
 }
 
 h2 {
@@ -235,7 +235,7 @@ h2 {
     }
 }
 /* Customer Name (Optional) */
-#customer-name {
+#customer-name,#company-name {
     width: 100%;
     padding: 12px;
     margin: 12px 0;
@@ -245,7 +245,7 @@ h2 {
     background-color: #fff;
 }
 
-#customer-name::placeholder {
+#customer-name,#company-name::placeholder {
     color: #888;
     font-style: italic;
 }
@@ -299,7 +299,7 @@ h2 {
         width: 90%;
     }
 
-    #customer-name {
+    #customer-name,#company-name {
         width: 90%;
     }
 }
